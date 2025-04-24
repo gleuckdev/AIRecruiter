@@ -140,6 +140,21 @@ if __name__ == '__main__':
         run_migration(alter_score_column, "Altered score column type to FLOAT")
         run_migration(create_roles_table, "Created roles table with default roles")
         run_migration(add_role_fields, "Added role_id fields to recruiters and invitations")
+
+                # Add token_id to jobs table if not present
+        def add_token_id_column_to_jobs(op, conn):
+            from sqlalchemy import inspect
+            inspector = inspect(conn)
+            columns = [col['name'] for col in inspector.get_columns('jobs')]
+            
+            if 'token_id' not in columns:
+                op.add_column('jobs', Column('token_id', Integer, ForeignKey('job_tokens.id')))
+                print("✅ 'token_id' column added to jobs table.")
+            else:
+                print("ℹ️ 'token_id' column already exists in jobs table.")
+
+        run_migration(add_token_id_column_to_jobs, "Checked/added token_id column to jobs table")
+
         
         # Data sharing migrations
         def add_sharing_fields_to_invitation(op, conn):
