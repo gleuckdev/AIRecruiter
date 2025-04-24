@@ -1,0 +1,18 @@
+
+        John Doe
+        Software Engineer
+        john.doe@example.com | 123-456-7890
+
+        Experience:
+        Senior Software Engineer, Tech Corp, 2018-2020
+        - Led team of 5 developers
+        - Implemented CI/CD pipeline
+        - Used Python, JavaScript, Docker
+        
+        Software Engineer, StartupXYZ, 2015-2018
+        - Developed backend services using Node.js
+        - Improved database performance by 40%
+        
+        Education:
+        Bachelor's in Computer Science, University of Technology, 2015
+        

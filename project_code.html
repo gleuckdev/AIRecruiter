@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Recruiter Pro - Project Code Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #2563eb;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .file-container {
+            margin-bottom: 30px;
+        }
+        .file-path {
+            font-weight: bold;
+            background-color: #e0e7ff;
+            padding: 8px 15px;
+            border-radius: 5px 5px 0 0;
+            border: 1px solid #c7d2fe;
+            border-bottom: none;
+        }
+        .download-instructions {
+            background-color: #f0f9ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            border: 1px solid #bae6fd;
+        }
+        .warning {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Recruiter Pro - Project Code</h1>
+    
+    <div class="download-instructions">
+        <h2>Download Instructions</h2>
+        <p>This page contains the complete source code for the AI Recruiter Pro application. To use this code:</p>
+        <ol>
+            <li>Save this entire page to your computer</li>
+            <li>Create a new GitHub repository</li>
+            <li>Clone the repository to your local machine</li>
+            <li>Copy the files from this document into the appropriate locations in your cloned repository</li>
+            <li>Follow the setup instructions in the README.md file</li>
+            <li>Commit and push the changes to GitHub</li>
+        </ol>
+        <p class="warning">Note: Remember to update any placeholder values in the .env.example file with your actual configuration before deploying.</p>
+    </div>
+
+    <h2>Project Structure</h2>
+    <p>The project follows this structure:</p>
+    <pre>
+├── static (Folder for CSS, JavaScript, and images)
+├── templates (HTML templates)
+├── utils (Utility functions)
+├── .env.example (Environment variables example)
+├── .gitignore (Git ignore patterns)
+├── add_sample_candidates.py (Sample candidate data)
+├── add_sample_job.py (Sample job data)
+├── add_test_data.py (Combined test data script)
+├── app.py (Main application logic)
+├── create_admin.py (Admin creation script)
+├── LICENSE (MIT License)
+├── main.py (Application entry point)
+├── migrations.py (Database migration logic)
+├── models.py (Database models)
+├── README.md (Project documentation)
+├── requirements-app.txt (Python dependencies)
+├── CHANGES.md (Version history)
+├── CONTRIBUTING.md (Contributor guidelines)
+└── SETUP_INSTRUCTIONS.md (Detailed setup guide)
+    </pre>
+
+    <h2>Source Code</h2>
+
+    <div class="file-container">
+        <div class="file-path">.env.example</div>
+<pre>
+# Application Environment
+FLASK_ENV=development
+DEBUG=True
+SECRET_KEY=replace_with_your_secret_key
+
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+
+# Google Cloud Storage Settings
+GOOGLE_APPLICATION_CREDENTIALS=./path/to/your-credentials.json
+GCS_BUCKET_NAME=your-bucket-name
+
+# OpenAI API Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Email Service (Mailgun)
+MAILGUN_API_KEY=your_mailgun_api_key
+MAILGUN_DOMAIN=mg.yourdomain.com
+
+# Session Settings
+SESSION_SECRET=your_session_secret_key
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">.gitignore</div>
+<pre>
+# Environment variables
+.env
+.env.*
+
+# Google Cloud credentials
+.gcp-credentials.json
+*credentials*.json
+service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+
+# Local uploads
+uploads/
+temp/
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Test files
+.coverage
+htmlcov/
+
+# Allow model schema JSON files
+!utils/*.json
+!schemas/*.json
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">add_sample_candidates.py</div>
+<pre>
+#!/usr/bin/env python
+"""
+Script to add sample candidates to the database.
+Run this to populate the database with realistic candidates for testing.
+"""
+
+import os
+from dotenv import load_dotenv
+import json
+import random
+
+# Load environment variables
+load_dotenv()
+
+# Import after environment variables are loaded
+from app import db, create_app
+from models import Candidate, Recruiter, Job, JobCandidateMatch
+
+def add_sample_candidates():
+    """Add sample candidates to the database"""
+    app = create_app()
+    
+    with app.app_context():
+        # Check if we already have a recruiter to assign the candidates to
+        recruiter = Recruiter.query.first()
+        
+        if not recruiter:
+            print("Error: No recruiter found in database. Please create a recruiter first.")
+            return
+        
+        # Get a job to associate with some candidates
+        job = Job.query.first()
+        
+        # Sample candidate data
+        candidates_data = [
+            {
+                "name": "Emily Johnson",
+                "email": "emily.johnson@example.com",
+                "phone": "555-123-4567",
+                "resume_file": "emily_johnson_resume.pdf",
+                "gcs_url": "https://storage.example.com/resumes/emily_johnson_resume.pdf",
+                "parsed_data": {
+                    "skills": ["Python", "Django", "Flask", "PostgreSQL", "React", "Docker", "AWS"],
+                    "experience": "6 years",
+                    "education": "M.S. Computer Science, Stanford University",
+                    "summary": "Experienced full-stack developer with a focus on Python web applications."
+                }
+            },
+            {
+                "name": "Michael Chen",
+                "email": "michael.chen@example.com",
+                "phone": "555-234-5678",
+                "resume_file": "michael_chen_resume.pdf",
+                "gcs_url": "https://storage.example.com/resumes/michael_chen_resume.pdf",
+                "parsed_data": {
+                    "skills": ["Python", "Django", "MongoDB", "JavaScript", "Angular", "Kubernetes", "GCP"],
+                    "experience": "4 years",
+                    "education": "B.S. Computer Engineering, MIT",
+                    "summary": "Full-stack developer specializing in Python backends and modern JavaScript frameworks."
+                }
+            },
+            {
+                "name": "Sarah Williams",
+                "email": "sarah.williams@example.com",
+                "phone": "555-345-6789",
+                "resume_file": "sarah_williams_resume.pdf",
+                "gcs_url": "https://storage.example.com/resumes/sarah_williams_resume.pdf",
+                "parsed_data": {
+                    "skills": ["Python", "Flask", "FastAPI", "SQLAlchemy", "PostgreSQL", "Vue.js", "CI/CD", "Docker"],
+                    "experience": "7 years",
+                    "education": "Ph.D. Computer Science, Carnegie Mellon University",
+                    "summary": "Senior backend developer focused on building scalable APIs and microservices."
+                }
+            },
+            {
+                "name": "David Rodriguez",
+                "email": "david.rodriguez@example.com",
+                "phone": "555-456-7890",
+                "resume_file": "david_rodriguez_resume.pdf",
+                "gcs_url": "https://storage.example.com/resumes/david_rodriguez_resume.pdf",
+                "parsed_data": {
+                    "skills": ["JavaScript", "React", "Node.js", "Express", "MongoDB", "AWS Lambda", "Serverless"],
+                    "experience": "5 years",
+                    "education": "B.S. Information Systems, UC Berkeley",
+                    "summary": "Frontend specialist with full-stack capabilities and serverless experience."
+                }
+            },
+            {
+                "name": "Jennifer Kim",
+                "email": "jennifer.kim@example.com",
+                "phone": "555-567-8901",
+                "resume_file": "jennifer_kim_resume.pdf",
+                "gcs_url": "https://storage.example.com/resumes/jennifer_kim_resume.pdf",
+                "parsed_data": {
+                    "skills": ["Python", "Django", "Flask", "GraphQL", "React", "TypeScript", "PostgreSQL", "Redis"],
+                    "experience": "8 years",
+                    "education": "M.S. Software Engineering, University of Washington",
+                    "summary": "Tech lead with expertise in Python web development and modern frontend technologies."
+                }
+            }
+        ]
+        
+        added_candidates = []
+        
+        for candidate_data in candidates_data:
+            # Check if this candidate already exists
+            existing_candidate = Candidate.query.filter_by(email=candidate_data["email"]).first()
+            
+            if existing_candidate:
+                print(f"Candidate {candidate_data['name']} already exists.")
+                added_candidates.append(existing_candidate)
+                continue
+            
+            # Add the recruiter ID
+            candidate_data["uploaded_by"] = recruiter.id
+            
+            # Randomly assign some candidates to the job if one exists
+            if job and random.choice([True, False]):
+                candidate_data["job_id"] = job.id
+            
+            # Create a persona
+            persona = {
+                "strengths": ["Quick learner", "Team player", "Detail-oriented"],
+                "weaknesses": ["Sometimes overcommits", "Could improve presentation skills"],
+                "work_style": "Collaborative but can work independently",
+                "personality": "Analytical, thorough, and adaptable",
+                "ideal_work_environment": "Fast-paced, innovative team with clear objectives"
+            }
+            candidate_data["persona"] = persona
+            
+            # Create a dummy embedding (would normally be generated by OpenAI)
+            embedding = [0.01] * 1536  # OpenAI embeddings are 1536 dimensions
+            candidate_data["embedding"] = embedding
+            
+            # Create the candidate
+            candidate = Candidate(**candidate_data)
+            
+            # Add to database
+            db.session.add(candidate)
+            db.session.flush()  # To get the ID
+            
+            # Create a match if the candidate is associated with a job
+            if "job_id" in candidate_data and candidate_data["job_id"]:
+                # Calculate a score between 0.3 and 0.95
+                score = random.uniform(0.3, 0.95)
+                
+                match = JobCandidateMatch(
+                    job_id=candidate_data["job_id"],
+                    candidate_id=candidate.id,
+                    score=score
+                )
+                db.session.add(match)
+            
+            added_candidates.append(candidate)
+            print(f"Added sample candidate: {candidate_data['name']}")
+        
+        db.session.commit()
+        print(f"Added {len(added_candidates)} sample candidates.")
+        return added_candidates
+
+if __name__ == "__main__":
+    add_sample_candidates()
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">add_sample_job.py</div>
+<pre>
+#!/usr/bin/env python
+"""
+Script to add a sample job to the database.
+Run this to populate the database with a realistic job for testing.
+"""
+
+import os
+from dotenv import load_dotenv
+import json
+
+# Load environment variables
+load_dotenv()
+
+# Import after environment variables are loaded
+from app import db, create_app
+from models import Job, Recruiter, JobToken
+
+def add_sample_job():
+    """Add a sample job to the database"""
+    app = create_app()
+    
+    with app.app_context():
+        # Check if we already have a recruiter to assign the job to
+        recruiter = Recruiter.query.first()
+        
+        if not recruiter:
+            print("Error: No recruiter found in database. Please create a recruiter first.")
+            return
+        
+        # Sample job data
+        job_data = {
+            "title": "Senior Python Developer",
+            "description": """
+We are looking for a Senior Python Developer to join our dynamic team. The ideal candidate will have extensive experience building scalable web applications using Python and related frameworks like Flask or Django.
+
+Responsibilities:
+- Design, develop, and maintain Python-based applications
+- Write clean, maintainable, and efficient code
+- Work with front-end developers to integrate user-facing elements
+- Optimize applications for maximum speed and scalability
+- Implement security and data protection measures
+- Debug and fix issues as they arise
+
+Requirements:
+- 5+ years of experience with Python
+- Strong understanding of web frameworks (Flask, Django)
+- Experience with databases (PostgreSQL, MongoDB)
+- Knowledge of front-end technologies (JavaScript, HTML, CSS)
+- Familiarity with version control systems (Git)
+- Experience with RESTful APIs and microservices architecture
+- Strong problem-solving skills and attention to detail
+- Excellent communication and teamwork skills
+            """,
+            "location": "San Francisco, CA (Remote Option Available)",
+            "experience": "5+ years",
+            "education": "Bachelor's degree in Computer Science or related field",
+            "job_type": "Full-time",
+            "salary_range": "$120,000 - $160,000 per year",
+            "company": "TechInnovate Solutions",
+            "required_skills": ["Python", "Flask", "Django", "PostgreSQL", "RESTful APIs", "Git"],
+            "preferred_skills": ["Docker", "Kubernetes", "AWS", "Microservices", "CI/CD", "React"],
+            "recruiter_id": recruiter.id,
+            "status": "active"
+        }
+        
+        # Check if this job already exists
+        existing_job = Job.query.filter_by(
+            title=job_data["title"],
+            company=job_data["company"],
+            recruiter_id=recruiter.id
+        ).first()
+        
+        if existing_job:
+            print(f"Sample job '{job_data['title']}' already exists.")
+            return existing_job
+        
+        # Create the job
+        job = Job(**job_data)
+        
+        # Create a dummy embedding (would normally be generated by OpenAI)
+        job.embedding = [0.01] * 1536  # OpenAI embeddings are 1536 dimensions
+        
+        # Add to database
+        db.session.add(job)
+        db.session.commit()
+        
+        print(f"Added sample job: {job_data['title']}")
+        return job
+
+if __name__ == "__main__":
+    add_sample_job()
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">add_test_data.py</div>
+<pre>
+#!/usr/bin/env python
+"""
+Script to add sample test data to the database.
+This combines add_sample_job.py and add_sample_candidates.py into a single script.
+"""
+
+import os
+import sys
+from dotenv import load_dotenv
+import bcrypt
+
+# Load environment variables
+load_dotenv()
+
+# Import after environment variables are loaded
+from app import db, create_app
+from models import Recruiter, Role, Job, Candidate, JobCandidateMatch
+
+# Import the individual functions
+from add_sample_job import add_sample_job
+from add_sample_candidates import add_sample_candidates
+from create_admin import create_admin_user
+
+def add_test_data():
+    """
+    Add test data to the database including:
+    - A demo admin user (if none exists)
+    - Sample job
+    - Sample candidates with various skills
+    - Job-candidate matches
+    """
+    app = create_app()
+    
+    with app.app_context():
+        # Step 1: Make sure we have a recruiter (admin)
+        recruiter = Recruiter.query.first()
+        
+        if not recruiter:
+            print("No users found, creating a demo admin user...")
+            recruiter = create_admin_user(
+                email="demo@example.com",
+                password="password123",
+                name="Demo Admin"
+            )
+            print(f"Created demo admin user: {recruiter.email}")
+        else:
+            print(f"Using existing user: {recruiter.email}")
+        
+        # Step 2: Add a sample job
+        job = add_sample_job()
+        if job:
+            print(f"Added job: {job.title}")
+        
+        # Step 3: Add sample candidates
+        candidates = add_sample_candidates()
+        if candidates:
+            print(f"Added {len(candidates)} sample candidates")
+        
+        print("\nTest data setup complete!")
+        print("\nLogin with:")
+        print("Email: demo@example.com")
+        print("Password: password123")
+
+if __name__ == "__main__":
+    add_test_data()
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">create_admin.py</div>
+<pre>
+#!/usr/bin/env python
+"""
+Script to create an admin user for the AI Recruiter Pro application.
+"""
+
+import os
+import argparse
+import bcrypt
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Load environment variables
+load_dotenv()
+
+# Import after environment variables are loaded
+from app import db, create_app
+from models import Recruiter, Role
+
+def create_admin_user(email, password, name=None):
+    """
+    Create an admin user with the given email and password.
+    
+    Args:
+        email (str): The email address for the admin user
+        password (str): The password for the admin user
+        name (str, optional): The name for the admin user. Defaults to "Admin".
+        
+    Returns:
+        Recruiter: The created admin user
+    """
+    app = create_app()
+    
+    with app.app_context():
+        # Check if the user already exists
+        existing_user = Recruiter.query.filter_by(email=email).first()
+        if existing_user:
+            print(f"User with email {email} already exists.")
+            return existing_user
+            
+        # Hash the password
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Create the admin user
+        admin = Recruiter(
+            name=name or "Admin",
+            email=email,
+            password_hash=password_hash,
+            role="admin",
+            role_id="admin"
+        )
+        
+        # Add to database
+        db.session.add(admin)
+        db.session.commit()
+        
+        print(f"Admin user {email} created successfully!")
+        return admin
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Create an admin user for AI Recruiter Pro")
+    parser.add_argument("--email", required=True, help="Admin email address")
+    parser.add_argument("--password", required=True, help="Admin password")
+    parser.add_argument("--name", help="Admin name (default: Admin)")
+    
+    args = parser.parse_args()
+    
+    create_admin_user(args.email, args.password, args.name)
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">LICENSE</div>
+<pre>
+MIT License
+
+Copyright (c) 2025 AI Recruiter Pro
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">README.md</div>
+<pre>
+# AI Recruiter Pro
+
+&lt;p align="center">
+  &lt;img src="static/images/logo.svg" alt="AI Recruiter Pro Logo" width="200"/>
+&lt;/p>
+
+AI-powered recruitment platform that intelligently matches candidates with job opportunities through advanced natural language processing and AI algorithms.
+
+## 🚀 Features
+
+- **AI-Powered Matching**: Uses OpenAI embedding models to match candidates with suitable job openings
+- **Smart Resume Processing**: Automatically extracts skills, experience, and qualifications from resumes
+- **Candidate Persona Generation**: Creates detailed candidate profiles using AI
+- **Recruiter Collaboration**: Share candidates and jobs with team members
+- **Role-Based Access Control**: Granular permission system with admin and recruiter roles
+- **Cloud Storage Integration**: Store candidate resumes in Google Cloud Storage
+- **Responsive Design**: Modern Material Design-inspired UI
+
+## 📸 Screenshots
+
+&lt;p align="center">
+  &lt;img src="static/images/screenshots/dashboard.png" alt="Dashboard" width="400"/>
+  &lt;img src="static/images/screenshots/candidate-matching.png" alt="Candidate Matching" width="400"/>
+&lt;/p>
+
+## 🛠️ Installation
+
+### Prerequisites
+
+- Python 3.9+
+- PostgreSQL database
+- Google Cloud Storage account (optional, falls back to local storage)
+- OpenAI API key
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ai-recruiter-pro.git
+   cd ai-recruiter-pro
+   ```
+
+2. **Set up a virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements-app.txt
+   ```
+
+4. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+5. **Set up the database**
+   ```bash
+   python migrations.py
+   ```
+
+6. **Run the application**
+   ```bash
+   python main.py
+   ```
+
+7. **Access the application**
+   Open your browser and go to: http://localhost:5000
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+See `.env.example` for a complete list of configuration options. The most important ones are:
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL database connection string |
+| `OPENAI_API_KEY` | Your OpenAI API key for AI features |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to GCP service account credentials file |
+| `GCS_BUCKET_NAME` | Google Cloud Storage bucket name for resume storage |
+| `SECRET_KEY` | Secret key for session encryption |
+
+## 🔒 Google Cloud Storage Setup
+
+This application can use Google Cloud Storage to store candidate resumes, making them accessible from anywhere and reducing local storage needs:
+
+1. Create a Google Cloud Project
+2. Create a service account with Storage Admin permissions
+3. Download the service account credentials JSON file
+4. Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of this file
+5. Create a bucket and set the `GCS_BUCKET_NAME` environment variable
+
+The application will automatically fall back to local storage if GCS credentials are not provided.
+
+## 📋 Admin Guide
+
+### Initial Setup
+
+After installation, create an admin account:
+```bash
+python create_admin.py --email admin@example.com --password SecurePassword123
+```
+
+### Adding Sample Data
+
+You can add sample data to test the application:
+```bash
+python add_test_data.py
+```
+
+## 🔐 Security Best Practices
+
+- Keep your `.env` file secure and never commit it to version control
+- Store the Google Cloud credentials file securely
+- Regularly rotate your API keys and credentials
+- Use strong passwords for database and admin accounts
+- Set up proper HTTPS in production
+
+## 🚀 Deployment
+
+For production deployment:
+
+1. Set `FLASK_ENV=production` and `DEBUG=False`
+2. Use a production WSGI server like Gunicorn:
+   ```bash
+   gunicorn --bind 0.0.0.0:5000 main:app
+   ```
+3. Set up proper HTTPS with a valid SSL certificate
+4. Configure database connection pooling
+5. Consider using a reverse proxy like Nginx
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/ai-recruiter-pro/issues).
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">requirements-app.txt</div>
+<pre>
+bcrypt>=4.0.1
+email-validator>=2.0.0
+Flask>=2.3.3
+Flask-Login>=0.6.2
+Flask-Migrate>=4.0.5
+Flask-SQLAlchemy>=3.1.1
+Flask-WTF>=1.2.1
+google-cloud-storage>=2.12.0
+gunicorn>=21.2.0
+numpy>=1.26.1
+openai>=1.3.5
+psycopg2-binary>=2.9.9
+PyJWT>=2.8.0
+pytesseract>=0.3.10
+python-dotenv>=1.0.0
+requests>=2.31.0
+SQLAlchemy>=2.0.23
+Werkzeug>=2.3.7
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">CHANGES.md</div>
+<pre>
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2025-04-23
+
+### Added
+- AI-powered candidate matching with jobs
+- Resume processing and skill extraction
+- Candidate persona generation with OpenAI
+- Recruiter collaboration with sharing options
+- Administrative role management
+- Google Cloud Storage integration for resume storage
+- Rating system for candidates (0-1 scale aligned with OpenAI metrics)
+- Job token system for detecting similar job postings
+- Bulk resume upload feature with progress tracking
+- Role-based access control with granular permissions
+- Responsive Material Design-inspired UI
+
+### Changed
+- Enhanced invitation system (removed email dependency, now uses shareable links)
+- Improved button labels with action-oriented text
+- Updated dashboard layout with card-based design
+- Enhanced candidate details view with tabbed interface
+
+### Fixed
+- Proper environment variable management through .env
+- Secure GCP credentials handling
+- Fixed permission checks for shared resources
+- Improved error handling for API requests
+
+## [0.9.0] - 2025-03-15
+
+### Added
+- Initial beta release
+- Basic candidate and job management
+- Simple matching algorithm
+- User authentication system
+- Initial UI design
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">CONTRIBUTING.md</div>
+<pre>
+# Contributing to AI Recruiter Pro
+
+First off, thank you for considering contributing to AI Recruiter Pro! It's people like you that make this project such a great tool.
+
+## How Can I Contribute?
+
+### Reporting Bugs
+
+This section guides you through submitting a bug report. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
+
+* **Use a clear and descriptive title** for the issue to identify the problem.
+* **Describe the exact steps which reproduce the problem** in as many details as possible.
+* **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples.
+* **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
+* **Explain which behavior you expected to see instead and why.**
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem.
+
+### Suggesting Enhancements
+
+This section guides you through submitting an enhancement suggestion, including completely new features and minor improvements to existing functionality.
+
+* **Use a clear and descriptive title** for the issue to identify the suggestion.
+* **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
+* **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples.
+* **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
+* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of the project which the suggestion is related to.
+* **Explain why this enhancement would be useful** to most users.
+* **List some other text editors or applications where this enhancement exists.**
+* **Specify which version of the project you're using.**
+
+### Pull Requests
+
+* Fill in the required template
+* Do not include issue numbers in the PR title
+* Include screenshots and animated GIFs in your pull request whenever possible.
+* Follow the Python [PEP 8](https://www.python.org/dev/peps/pep-0008/) styleguide.
+* Document new code based on the [Google Python Style Guide](http://google.github.io/styleguide/pyguide.html)
+* End all files with a newline
+* Avoid platform-dependent code
+
+## Development Environment Setup
+
+1. Fork the repository
+2. Clone your fork locally:
+   ```bash
+   git clone https://github.com/your-username/ai-recruiter-pro.git
+   cd ai-recruiter-pro
+   ```
+3. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+4. Install dependencies:
+   ```bash
+   pip install -r requirements-app.txt
+   ```
+5. Set up your `.env` file:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+6. Run the migrations:
+   ```bash
+   python migrations.py
+   ```
+7. Run the app:
+   ```bash
+   python main.py
+   ```
+
+## Style Guidelines
+
+### Git Commit Messages
+
+* Use the present tense ("Add feature" not "Added feature")
+* Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+* Limit the first line to 72 characters or less
+* Reference issues and pull requests liberally after the first line
+
+### Python Style Guide
+
+* Follow [PEP 8](https://www.python.org/dev/peps/pep-0008/)
+* Use consistent indentation (4 spaces, not tabs)
+* Maximum line length of 88 characters
+* Use docstrings to document functions and classes
+
+### JavaScript Style Guide
+
+* Use 2 spaces for indentation
+* Prefer single quotes for strings
+* End statements with semicolons
+* Add space after keywords and function names
+* No trailing whitespace
+* Naming conventions:
+  * Use camelCase for variables and functions
+  * Use PascalCase for classes and React components
+
+## Code of Conduct
+
+Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
+
+## Thank You!
+
+Thank you for your contributions - you help make this project better for everyone!
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">SETUP_INSTRUCTIONS.md</div>
+<pre>
+# AI Recruiter Pro Setup Instructions
+
+This document provides detailed instructions for setting up and deploying the AI Recruiter Pro application in various environments.
+
+## Local Development Setup
+
+### Prerequisites
+
+1. Python 3.9+ installed
+2. PostgreSQL database server installed and running
+3. Google Cloud Platform account (optional, for resume storage)
+4. OpenAI API key
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/ai-recruiter-pro.git
+cd ai-recruiter-pro
+```
+
+### Step 2: Set Up Virtual Environment
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements-app.txt
+```
+
+### Step 3: Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file to include:
+
+```
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/ai_recruiter
+
+# Application Settings
+FLASK_ENV=development
+DEBUG=True
+SECRET_KEY=your_secure_random_key
+SESSION_SECRET=another_secure_random_key
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Google Cloud Storage (optional)
+GOOGLE_APPLICATION_CREDENTIALS=path/to/your-service-account-credentials.json
+GCS_BUCKET_NAME=your-gcs-bucket-name
+```
+
+### Step 4: Initialize the Database
+
+Run the database migrations:
+
+```bash
+python migrations.py
+```
+
+### Step 5: Create an Admin User
+
+```bash
+python create_admin.py --email admin@example.com --password SecurePassword123 --name "Admin User"
+```
+
+### Step 6: Run the Development Server
+
+```bash
+python main.py
+```
+
+The application will be available at http://localhost:5000
+
+## Production Deployment
+
+### Option 1: Traditional Server Deployment
+
+#### Prerequisites
+
+1. Linux server with Python 3.9+
+2. Nginx or Apache web server
+3. PostgreSQL database
+4. SSL certificate (Let's Encrypt recommended)
+
+#### Step 1: Clone and Set Up the Application
+
+```bash
+git clone https://github.com/yourusername/ai-recruiter-pro.git
+cd ai-recruiter-pro
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements-app.txt
+```
+
+#### Step 2: Configure Environment Variables
+
+Create a `.env` file with production settings:
+
+```
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/ai_recruiter_prod
+
+# Application Settings
+FLASK_ENV=production
+DEBUG=False
+SECRET_KEY=your_very_secure_random_key
+SESSION_SECRET=another_very_secure_random_key
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Google Cloud Storage
+GOOGLE_APPLICATION_CREDENTIALS=path/to/your-service-account-credentials.json
+GCS_BUCKET_NAME=your-gcs-bucket-name
+```
+
+#### Step 3: Set Up Nginx Configuration
+
+Create an Nginx configuration file:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+    
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+#### Step 4: Set Up Systemd Service
+
+Create a systemd service file:
+
+```ini
+[Unit]
+Description=AI Recruiter Pro
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/path/to/ai-recruiter-pro
+Environment="PATH=/path/to/ai-recruiter-pro/venv/bin"
+EnvironmentFile=/path/to/ai-recruiter-pro/.env
+ExecStart=/path/to/ai-recruiter-pro/venv/bin/gunicorn --workers 4 --bind 0.0.0.0:5000 main:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+
+```bash
+sudo systemctl enable ai-recruiter
+sudo systemctl start ai-recruiter
+```
+
+### Option 2: Docker Deployment
+
+#### Prerequisites
+
+1. Docker and Docker Compose installed
+2. SSL certificate (for production)
+
+#### Step 1: Create a Dockerfile
+
+```dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements-app.txt .
+RUN pip install --no-cache-dir -r requirements-app.txt
+
+COPY . .
+
+ENV FLASK_ENV=production
+ENV DEBUG=False
+
+EXPOSE 5000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+```
+
+#### Step 2: Create a docker-compose.yml file
+
+```yaml
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+      - ./credentials:/app/credentials
+    restart: always
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+    restart: always
+
+volumes:
+  postgres_data:
+```
+
+#### Step 3: Configure Environment Variables
+
+Create a `.env` file for Docker:
+
+```
+# Database Configuration
+PGUSER=postgres
+PGPASSWORD=your_secure_password
+PGDATABASE=ai_recruiter
+DATABASE_URL=postgresql://postgres:your_secure_password@db:5432/ai_recruiter
+
+# Application Settings
+SECRET_KEY=your_very_secure_random_key
+SESSION_SECRET=another_very_secure_random_key
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Google Cloud Storage
+GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/your-service-account-credentials.json
+GCS_BUCKET_NAME=your-gcs-bucket-name
+```
+
+#### Step 4: Run Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+#### Step 5: Initialize the Database and Create Admin
+
+```bash
+docker-compose exec web python migrations.py
+docker-compose exec web python create_admin.py --email admin@example.com --password SecurePassword123
+```
+
+## Database Backup and Restore
+
+### Backup
+
+```bash
+pg_dump -U username -d ai_recruiter -h localhost -F c -f backup.dump
+```
+
+### Restore
+
+```bash
+pg_restore -U username -d ai_recruiter -h localhost -c backup.dump
+```
+
+## Security Best Practices
+
+1. Regularly update dependencies
+2. Rotate API keys and secrets periodically
+3. Enable HTTPS with proper SSL certificate
+4. Use strong passwords for all accounts
+5. Implement IP whitelisting for admin access
+6. Set up proper firewall rules
+7. Enable database encryption at rest
+8. Regularly back up the database
+9. Monitor application logs for suspicious activity
+10. Implement rate limiting for API endpoints
+
+## Troubleshooting
+
+### Database Connection Issues
+
+1. Check the `DATABASE_URL` in your `.env` file
+2. Ensure the database server is running
+3. Verify database user permissions
+
+### OpenAI API Issues
+
+1. Check the `OPENAI_API_KEY` in your `.env` file
+2. Verify the OpenAI API key is active and has sufficient credits
+3. Check the application logs for specific error messages
+
+### Google Cloud Storage Issues
+
+1. Verify the path to your Google Cloud credentials file
+2. Ensure the service account has Storage Admin permissions
+3. Check that the specified GCS bucket exists and is accessible
+
+### Application Not Starting
+
+1. Check the application logs for error messages
+2. Verify all required environment variables are set
+3. Ensure all dependencies are installed
+4. Check if the port is already in use by another application
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">main.py</div>
+<pre>
+#!/usr/bin/env python
+"""Main entry point for the AI Recruiter Pro application."""
+
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Import after environment variables are loaded
+from app import create_app
+
+app = create_app()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("DEBUG", "True").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)
+</pre>
+    </div>
+
+    <div class="file-container">
+        <div class="file-path">load_env.py</div>
+<pre>
+import os
+from dotenv import load_dotenv
+
+def load_environment_variables():
+    """Load environment variables from .env file"""
+    load_dotenv()
+    
+    # Required environment variables
+    required_vars = [
+        "DATABASE_URL",
+        "SECRET_KEY",
+        "SESSION_SECRET"
+    ]
+    
+    # Optional environment variables with defaults
+    optional_vars = {
+        "DEBUG": "True",
+        "FLASK_ENV": "development",
+        "PORT": "5000"
+    }
+    
+    # Check required variables
+    missing_vars = []
+    for var in required_vars:
+        if not os.environ.get(var):
+            missing_vars.append(var)
+    
+    # Set defaults for optional variables if not present
+    for var, default in optional_vars.items():
+        if not os.environ.get(var):
+            os.environ[var] = default
+    
+    if missing_vars:
+        print(f"ERROR: The following required environment variables are missing: {', '.join(missing_vars)}")
+        print("Please create a .env file with these variables or set them in your environment.")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    if load_environment_variables():
+        print("Environment variables loaded successfully!")
+    else:
+        print("Failed to load all required environment variables.")
+</pre>
+    </div>
+
+    <h2>Conclusion</h2>
+    <p>This page contains the core files needed to set up the AI Recruiter Pro application. Follow the instructions in the README.md and SETUP_INSTRUCTIONS.md files for detailed information on how to install, configure, and run the application.</p>
+    <p>Note that some additional files from the complete project may not be included here, such as template files, static assets, and utility modules. These can be created as needed based on the documentation.</p>
+    <p>For any issues or questions, please refer to the contribution guidelines or open an issue on the GitHub repository.</p>
+</body>
+</html>

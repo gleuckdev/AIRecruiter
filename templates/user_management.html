@@ -1,0 +1,1169 @@
+<!-- templates/user_management.html -->
+{% extends "base.html" %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">User Management</h1>
+    <p class="page-description">Manage user accounts, roles, and invitations.</p>
+    
+    <!-- Tabs for different sections -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button class="tab-button active" data-tab="users">Active Users</button>
+            <button class="tab-button" data-tab="invitations">Invitations</button>
+            <button class="tab-button" data-tab="roles">Role Management</button>
+        </div>
+        
+        <!-- Users Tab -->
+        <div class="tab-content active" id="users-tab">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Team Members</h2>
+                    <p class="section-description">Manage your active user accounts.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="padding: 12px 16px;">Name</th>
+                                        <th style="padding: 12px 16px;">Email</th>
+                                        <th style="padding: 12px 16px;">Role</th>
+                                        <th style="padding: 12px 16px;">Created</th>
+                                        <th style="padding: 12px 16px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recruitersList">
+                                    {% for r in recruiters %}
+                                    <tr id="recruiter-{{ r.id }}" data-recruiter-id="{{ r.id }}">
+                                        <td style="padding: 16px;">{{ r.name }}</td>
+                                        <td style="padding: 16px;">{{ r.email }}</td>
+                                        <td style="padding: 16px;">
+                                            <span class="badge role-badge role-{{ r.role_id }}">
+                                                {{ r.role_id.replace('_', ' ').title() }}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 16px;">{{ r.created_at.strftime('%b %d, %Y') }}</td>
+                                        <td style="padding: 16px;">
+                                            <div class="action-buttons" style="display: flex; gap: 10px;">
+                                                <button class="btn btn-sm btn-primary change-role-btn" 
+                                                        data-recruiter-id="{{ r.id }}"
+                                                        data-name="{{ r.name }}"
+                                                        data-email="{{ r.email }}"
+                                                        data-current-role="{{ r.role_id }}">
+                                                    <i class="material-icons">manage_accounts</i>
+                                                    Change Role
+                                                </button>
+                                                
+                                                {% if current_user.is_admin() and r.id != current_user.id %}
+                                                <button class="btn btn-sm btn-danger delete-user-btn"
+                                                        data-recruiter-id="{{ r.id }}"
+                                                        data-name="{{ r.name }}"
+                                                        data-email="{{ r.email }}">
+                                                    <i class="material-icons">delete</i>
+                                                    Remove
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Invitations Tab -->
+        <div class="tab-content" id="invitations-tab">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Pending Invitations</h2>
+                    <p class="section-description">Manage and track invitations to join your team.</p>
+                    
+                    <button class="btn btn-primary create-invite-btn">
+                        <i class="material-icons">person_add</i>
+                        Invite New User
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div id="invitationsContainer">
+                            {% if invitations %}
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Date Invited</th>
+                                            <th>Expires</th>
+                                            <th>Sharing</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for invite in invitations %}
+                                        <tr id="invitation-{{ invite.id }}">
+                                            <td>{{ invite.email }}</td>
+                                            <td>
+                                                <span class="badge role-badge role-{{ invite.role_id }}">
+                                                    {{ invite.role_id.replace('_', ' ').title() }}
+                                                </span>
+                                            </td>
+                                            <td>{{ invite.created_at.strftime('%b %d, %Y') }}</td>
+                                            <td>{{ invite.expires_at.strftime('%b %d, %Y') }}</td>
+                                            <td>
+                                                {% if invite.share_jobs or invite.share_candidates %}
+                                                <div class="sharing-tags">
+                                                    {% if invite.share_jobs %}
+                                                    <span class="sharing-tag">Jobs</span>
+                                                    {% endif %}
+                                                    {% if invite.share_candidates %}
+                                                    <span class="sharing-tag">Candidates</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% else %}
+                                                <span class="text-muted">None</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-sm btn-secondary copy-invite-btn" 
+                                                            data-invite-link="{{ url_for('join_with_invitation', token=invite.token, _external=True) }}">
+                                                        <i class="material-icons">content_copy</i>
+                                                        Copy Link
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-invite-btn" 
+                                                            data-invitation-id="{{ invite.id }}"
+                                                            data-email="{{ invite.email }}">
+                                                        <i class="material-icons">delete</i>
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="material-icons">mail</i>
+                                </div>
+                                <h3>No Pending Invitations</h3>
+                                <p>There are no pending invitations at this time.</p>
+                                <button class="btn btn-primary create-invite-btn">
+                                    <i class="material-icons">person_add</i>
+                                    Invite New User
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Roles Tab -->
+        <div class="tab-content" id="roles-tab">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">System Roles</h2>
+                    <p class="section-description">View available roles and their assigned permissions.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for role in roles %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge role-badge role-{{ role.role_id }}">
+                                                {{ role.name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="role-description">
+                                                {% if role.role_id == 'admin' %}
+                                                <p><strong>Administrator:</strong> Highest level of access with complete control over the system.</p>
+                                                <p>Administrators can:</p>
+                                                <ul>
+                                                    <li>Manage all users, roles, and permissions</li>
+                                                    <li>Create, edit, and delete any content</li>
+                                                    <li>Access all candidates and jobs in the system</li>
+                                                    <li>Promote or demote other users to any role</li>
+                                                    <li>Configure system settings</li>
+                                                </ul>
+                                                
+                                                <div class="permission-hierarchy">
+                                                    <p><strong>About Administrator Role:</strong></p>
+                                                    <p>The Administrator role sits at the top of our permission hierarchy with full access to all system features and controls.</p>
+                                                    <p>Administrators can manage the entire recruitment platform, including user access, system configuration, and all data.</p>
+                                                    <p>This role should be assigned carefully as it grants complete control over the system.</p>
+                                                </div>
+                                                {% elif role.role_id == 'senior_recruiter' %}
+                                                <p><strong>Senior Recruiter:</strong> Advanced access with team management capabilities.</p>
+                                                <p>Senior Recruiters can:</p>
+                                                <ul>
+                                                    <li>Create and manage job listings</li>
+                                                    <li>Invite new recruiters to join the team</li>
+                                                    <li>Access all candidates in the system</li>
+                                                    <li>Generate candidate personas</li>
+                                                </ul>
+                                                {% elif role.role_id == 'recruiter' %}
+                                                <p><strong>Recruiter:</strong> Standard access for everyday recruitment tasks.</p>
+                                                <p>Recruiters can:</p>
+                                                <ul>
+                                                    <li>View and rate candidates</li>
+                                                    <li>View job listings</li>
+                                                    <li>Upload and manage their own candidates</li>
+                                                    <li>Access candidates and jobs shared with them</li>
+                                                    <li>Create notes for candidates</li>
+                                                </ul>
+                                                {% else %}
+                                                <p><strong>{{ role.name }}:</strong> Custom role with specific permissions.</p>
+                                                <p>This role has the listed permissions and may inherit permissions from other roles.</p>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Role Modal -->
+<div id="changeRoleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Change User Role</h3>
+            <button type="button" class="modal-close" onclick="closeModal('changeRoleModal')">
+                <i class="material-icons">close</i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="message-container" id="roleChangeMessage"></div>
+            
+            <form id="changeRoleForm">
+                <input type="hidden" id="recruiterId" name="recruiterId">
+                
+                <div class="form-group">
+                    <label for="recruiterName">User Name</label>
+                    <div id="recruiterName" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recruiterEmail">Email</label>
+                    <div id="recruiterEmail" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="currentRole">Current Role</label>
+                    <div id="currentRole" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newRole">New Role</label>
+                    <select id="newRole" name="newRole" class="form-control" required>
+                        <option value="">Select a role</option>
+                        {% for role in roles %}
+                        <option value="{{ role.role_id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-default" onclick="closeModal('changeRoleModal')">Cancel</button>
+                    <button type="button" id="directUpdateRoleBtn" class="btn btn-primary">Update Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div id="deleteUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Remove User</h3>
+            <button type="button" class="modal-close" onclick="closeModal('deleteUserModal')">
+                <i class="material-icons">close</i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="message-container" id="deleteUserMessage"></div>
+            
+            <form id="deleteUserForm">
+                <input type="hidden" id="deleteRecruiterId" name="deleteRecruiterId">
+                
+                <div class="warning-message">
+                    <i class="material-icons warning-icon">warning</i>
+                    <p>You are about to permanently remove this user. This action cannot be undone.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>User Name</label>
+                    <div id="deleteRecruiterName" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <div id="deleteRecruiterEmail" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deleteConfirmation">Type "DELETE" to confirm</label>
+                    <input type="text" id="deleteConfirmation" name="deleteConfirmation" class="form-control" required placeholder="Type DELETE here">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-default" onclick="closeModal('deleteUserModal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Permanently Remove User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Invitation Modal -->
+<div id="createInviteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Invite New User</h3>
+            <button type="button" class="modal-close" onclick="closeModal('createInviteModal')">
+                <i class="material-icons">close</i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="message-container" id="inviteMessage"></div>
+            
+            <form id="createInviteForm">
+                <div class="form-group">
+                    <label for="inviteEmail">Email Address</label>
+                    <input type="email" id="inviteEmail" name="inviteEmail" class="form-control" required placeholder="email@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="inviteRole">Role</label>
+                    <select id="inviteRole" name="inviteRole" class="form-control" required>
+                        <option value="">Select a role</option>
+                        {% for role in roles %}
+                        {% if role.role_id != 'admin' or current_user.is_admin() %}
+                        <option value="{{ role.role_id }}">{{ role.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Data Sharing Options</label>
+                    <div class="checkbox-group">
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="shareJobs" name="shareJobs">
+                            <label for="shareJobs">Share my job listings</label>
+                        </div>
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="shareCandidates" name="shareCandidates">
+                            <label for="shareCandidates">Share my candidates</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-default" onclick="closeModal('createInviteModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Invitation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Invitation Modal -->
+<div id="deleteInviteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cancel Invitation</h3>
+            <button type="button" class="modal-close" onclick="closeModal('deleteInviteModal')">
+                <i class="material-icons">close</i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="message-container" id="deleteInviteMessage"></div>
+            
+            <form id="deleteInviteForm">
+                <input type="hidden" id="deleteInvitationId" name="deleteInvitationId">
+                
+                <div class="warning-message">
+                    <i class="material-icons warning-icon">warning</i>
+                    <p>You are about to cancel this invitation. The user will no longer be able to join using this link.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <div id="deleteInvitationEmail" class="static-field"></div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-default" onclick="closeModal('deleteInviteModal')">Go Back</button>
+                    <button type="submit" class="btn btn-danger">Cancel Invitation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Tab Layout */
+.tabs-container {
+    margin-top: 2rem;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    color: #4b5563;
+}
+
+.tab-button.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Improved table spacing */
+.data-table td, .data-table th {
+    padding: 14px 16px !important;
+}
+
+.data-table tr {
+    line-height: 1.5;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+#recruitersList tr td {
+    vertical-align: middle;
+}
+
+/* Permission and Sharing Tags */
+.permission-tags, .sharing-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.permission-tag, .sharing-tag {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Role description styling */
+.role-description {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    margin-bottom: 10px;
+}
+
+.role-description p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.role-description strong {
+    color: #1e40af;
+}
+
+.role-description ul {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.role-description li {
+    margin-bottom: 5px;
+    position: relative;
+    padding-left: 5px;
+}
+
+/* Permission hierarchy visualization */
+.permission-hierarchy {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f0f9ff;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+}
+
+.permission-hierarchy p {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #0c4a6e;
+}
+
+.sharing-tag {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* Role Badges */
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.role-admin {
+    background-color: #7c3aed;
+    color: white;
+}
+
+.role-senior_recruiter {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.role-recruiter {
+    background-color: #10b981;
+    color: white;
+}
+
+/* Form Styling */
+.static-field {
+    padding: 8px 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-size: 1rem;
+    color: #333;
+}
+
+.warning-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 1rem;
+    background-color: #fff5f5;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.warning-icon {
+    color: #dc2626;
+    font-size: 24px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+.empty-state-icon i {
+    font-size: 48px;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.empty-state p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+</style>
+
+<script>
+// Helper functions for modals
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+// Initialize the page and hide all modals
+// Add a title case function to String prototype
+if (!String.prototype.title) {
+    String.prototype.title = function() {
+        return this.replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+    };
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide all modals on page load
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
+    
+    // Tab switching functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // Update active tab button
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show active tab content
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+    
+    // Set up role change buttons
+    const changeRoleButtons = document.querySelectorAll('.change-role-btn');
+    changeRoleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const recruiterId = this.getAttribute('data-recruiter-id');
+            const recruiterName = this.getAttribute('data-name');
+            const recruiterEmail = this.getAttribute('data-email');
+            const currentRole = this.getAttribute('data-current-role');
+            
+            // Set form values
+            document.getElementById('recruiterId').value = recruiterId;
+            document.getElementById('recruiterName').textContent = recruiterName;
+            document.getElementById('recruiterEmail').textContent = recruiterEmail;
+            
+            // Set current role with proper formatting and badge
+            const currentRoleElement = document.getElementById('currentRole');
+            currentRoleElement.innerHTML = `<span class="badge role-badge role-${currentRole}">${currentRole.replace('_', ' ').title()}</span>`;
+            
+            // Set the new role select to the current value
+            const newRoleSelect = document.getElementById('newRole');
+            newRoleSelect.value = currentRole;
+            
+            // Show the modal
+            document.getElementById('changeRoleModal').style.display = 'flex';
+            
+            // Clear any previous messages
+            document.getElementById('roleChangeMessage').innerHTML = '';
+        });
+    });
+    
+    // Set up delete user buttons
+    const deleteUserButtons = document.querySelectorAll('.delete-user-btn');
+    deleteUserButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const recruiterId = this.getAttribute('data-recruiter-id');
+            const recruiterName = this.getAttribute('data-name');
+            const recruiterEmail = this.getAttribute('data-email');
+            
+            // Set form values
+            document.getElementById('deleteRecruiterId').value = recruiterId;
+            document.getElementById('deleteRecruiterName').textContent = recruiterName;
+            document.getElementById('deleteRecruiterEmail').textContent = recruiterEmail;
+            
+            // Clear confirmation field
+            document.getElementById('deleteConfirmation').value = '';
+            
+            // Show the modal
+            document.getElementById('deleteUserModal').style.display = 'flex';
+            
+            // Clear any previous messages
+            document.getElementById('deleteUserMessage').innerHTML = '';
+        });
+    });
+    
+    // Set up create invitation buttons
+    const createInviteButtons = document.querySelectorAll('.create-invite-btn');
+    createInviteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Reset form
+            document.getElementById('createInviteForm').reset();
+            
+            // Show the modal
+            document.getElementById('createInviteModal').style.display = 'flex';
+            
+            // Clear any previous messages
+            document.getElementById('inviteMessage').innerHTML = '';
+        });
+    });
+    
+    // Set up delete invitation buttons
+    const deleteInviteButtons = document.querySelectorAll('.delete-invite-btn');
+    deleteInviteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const invitationId = this.getAttribute('data-invitation-id');
+            const invitationEmail = this.getAttribute('data-email');
+            
+            // Set form values
+            document.getElementById('deleteInvitationId').value = invitationId;
+            document.getElementById('deleteInvitationEmail').textContent = invitationEmail;
+            
+            // Show the modal
+            document.getElementById('deleteInviteModal').style.display = 'flex';
+            
+            // Clear any previous messages
+            document.getElementById('deleteInviteMessage').innerHTML = '';
+        });
+    });
+    
+    // Set up copy invitation link buttons
+    const copyInviteButtons = document.querySelectorAll('.copy-invite-btn');
+    copyInviteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const inviteLink = this.getAttribute('data-invite-link');
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(inviteLink).then(() => {
+                // Temporarily change button text to show success
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="material-icons">check</i> Copied!';
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        });
+    });
+    
+    // Set up direct role update button
+    const directUpdateRoleBtn = document.getElementById('directUpdateRoleBtn');
+    if (directUpdateRoleBtn) {
+        directUpdateRoleBtn.addEventListener('click', async function() {
+            const recruiterId = document.getElementById('recruiterId').value;
+            const newRole = document.getElementById('newRole').value;
+            const messageContainer = document.getElementById('roleChangeMessage');
+            
+            // Input validation
+            if (!newRole) {
+                showMessage(messageContainer, 'error', 'Please select a role');
+                return;
+            }
+            
+            // Clear previous messages
+            messageContainer.innerHTML = '';
+            
+            // Show loading state
+            this.disabled = true;
+            this.textContent = 'Updating...';
+            
+            try {
+                console.log(`Sending direct role update for recruiter ${recruiterId} to ${newRole}`);
+                
+                const response = await fetch(`/api/recruiters/${recruiterId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role_id: newRole })
+                });
+                
+                console.log(`Response status: ${response.status}`);
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('Failed to parse JSON response:', e);
+                    showMessage(messageContainer, 'error', `Failed to parse server response: ${responseText}`);
+                    return;
+                }
+                
+                if (response.ok) {
+                    // Show success message
+                    showMessage(messageContainer, 'success', data.message || 'Role updated successfully!');
+                    
+                    // Update the table row
+                    const row = document.getElementById(`recruiter-${recruiterId}`);
+                    if (row) {
+                        const roleCell = row.querySelector('td:nth-child(3)');
+                        if (roleCell) {
+                            const displayText = newRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            roleCell.innerHTML = `<span class="badge role-badge role-${newRole}">${displayText}</span>`;
+                            
+                            // Update the change button data attribute
+                            const button = row.querySelector('.change-role-btn');
+                            if (button) {
+                                button.setAttribute('data-current-role', newRole);
+                            }
+                        }
+                    }
+                    
+                    // Reload page after delay to refresh all data
+                    setTimeout(() => {
+                        window.location.reload(); 
+                    }, 2000);
+                } else {
+                    // Handle error based on the type
+                    if (data.code === 'permission_denied') {
+                        showMessage(messageContainer, 'error', `Permission denied: ${data.details || 'You do not have permission to perform this action'}`);
+                    } else {
+                        showMessage(messageContainer, 'error', data.error || 'Failed to update role.');
+                    }
+                }
+            } catch (error) {
+                console.error('Error during role update:', error);
+                showMessage(messageContainer, 'error', `Network error: ${error.message}`);
+            } finally {
+                // Re-enable the button
+                this.disabled = false;
+                this.textContent = 'Update Role';
+            }
+        });
+    }
+    
+    // Disable form submission since we're using the direct button
+    const changeRoleForm = document.getElementById('changeRoleForm');
+    if (changeRoleForm) {
+        changeRoleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Trigger the direct button click
+            document.getElementById('directUpdateRoleBtn').click();
+        });
+    }
+    
+    // Set up delete user form submission
+    const deleteUserForm = document.getElementById('deleteUserForm');
+    if (deleteUserForm) {
+        deleteUserForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const recruiterId = document.getElementById('deleteRecruiterId').value;
+            const confirmation = document.getElementById('deleteConfirmation').value;
+            const messageContainer = document.getElementById('deleteUserMessage');
+            
+            // Check confirmation
+            if (confirmation !== 'DELETE') {
+                showMessage(messageContainer, 'error', 'Please type "DELETE" to confirm.');
+                return;
+            }
+            
+            // Disable form during submission
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Removing...';
+            
+            try {
+                const response = await fetch(`/api/recruiters/${recruiterId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Show success message
+                    showMessage(messageContainer, 'success', data.message || 'User removed successfully!');
+                    
+                    // Remove the row from the table
+                    const row = document.getElementById(`recruiter-${recruiterId}`);
+                    if (row) {
+                        setTimeout(() => {
+                            row.remove();
+                        }, 500);
+                    }
+                    
+                    // Close modal after a delay
+                    setTimeout(() => {
+                        closeModal('deleteUserModal');
+                    }, 2000);
+                } else {
+                    // Handle error based on the type
+                    if (data.code === 'permission_denied') {
+                        showMessage(messageContainer, 'error', `Permission denied: ${data.details}`);
+                    } else {
+                        showMessage(messageContainer, 'error', data.error || 'Failed to remove user.');
+                    }
+                }
+            } catch (error) {
+                showMessage(messageContainer, 'error', `Network error: ${error.message}`);
+            } finally {
+                // Re-enable the form
+                submitButton.disabled = false;
+                submitButton.textContent = 'Permanently Remove User';
+            }
+        });
+    }
+    
+    // Set up create invitation form submission
+    const createInviteForm = document.getElementById('createInviteForm');
+    if (createInviteForm) {
+        createInviteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('inviteEmail').value;
+            const role = document.getElementById('inviteRole').value;
+            const shareJobs = document.getElementById('shareJobs').checked;
+            const shareCandidates = document.getElementById('shareCandidates').checked;
+            const messageContainer = document.getElementById('inviteMessage');
+            
+            // Disable form during submission
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch('/api/invites', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        role_id: role,
+                        share_jobs: shareJobs,
+                        share_candidates: shareCandidates
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Show success message
+                    showMessage(messageContainer, 'success', 'Invitation sent successfully!');
+                    
+                    // Reset form
+                    createInviteForm.reset();
+                    
+                    // Reload page after delay to show new invitation
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    // Handle error
+                    showMessage(messageContainer, 'error', data.error || 'Failed to send invitation.');
+                }
+            } catch (error) {
+                showMessage(messageContainer, 'error', `Network error: ${error.message}`);
+            } finally {
+                // Re-enable the form
+                submitButton.disabled = false;
+                submitButton.textContent = 'Send Invitation';
+            }
+        });
+    }
+    
+    // Set up delete invitation form submission
+    const deleteInviteForm = document.getElementById('deleteInviteForm');
+    if (deleteInviteForm) {
+        deleteInviteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const invitationId = document.getElementById('deleteInvitationId').value;
+            const messageContainer = document.getElementById('deleteInviteMessage');
+            
+            // Disable form during submission
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Cancelling...';
+            
+            try {
+                const response = await fetch(`/api/invites/${invitationId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Show success message
+                    showMessage(messageContainer, 'success', data.message || 'Invitation cancelled successfully!');
+                    
+                    // Remove the row from the table
+                    const row = document.getElementById(`invitation-${invitationId}`);
+                    if (row) {
+                        setTimeout(() => {
+                            row.remove();
+                        }, 500);
+                    }
+                    
+                    // Check if there are no more invitations
+                    const tbody = document.querySelector('#invitations-tab table tbody');
+                    if (tbody && tbody.children.length <= 1) {
+                        // Will be 1 after the timeout removes the current row
+                        setTimeout(() => {
+                            const invitationsContainer = document.getElementById('invitationsContainer');
+                            invitationsContainer.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="material-icons">mail</i>
+                                    </div>
+                                    <h3>No Pending Invitations</h3>
+                                    <p>There are no pending invitations at this time.</p>
+                                    <button class="btn btn-primary create-invite-btn">
+                                        <i class="material-icons">person_add</i>
+                                        Invite New User
+                                    </button>
+                                </div>
+                            `;
+                            
+                            // Re-attach event listener to the new button
+                            document.querySelector('#invitationsContainer .create-invite-btn')
+                                .addEventListener('click', function() {
+                                    document.getElementById('createInviteForm').reset();
+                                    document.getElementById('createInviteModal').style.display = 'flex';
+                                    document.getElementById('inviteMessage').innerHTML = '';
+                                });
+                        }, 500);
+                    }
+                    
+                    // Close modal after a delay
+                    setTimeout(() => {
+                        closeModal('deleteInviteModal');
+                    }, 2000);
+                } else {
+                    // Handle error
+                    showMessage(messageContainer, 'error', data.error || 'Failed to cancel invitation.');
+                }
+            } catch (error) {
+                showMessage(messageContainer, 'error', `Network error: ${error.message}`);
+            } finally {
+                // Re-enable the form
+                submitButton.disabled = false;
+                submitButton.textContent = 'Cancel Invitation';
+            }
+        });
+    }
+});
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function showMessage(container, type, message) {
+    if (!container) return;
+    
+    let iconName = 'info';
+    let bgColor = '#e0f2fe';
+    let iconBgColor = '#0284c7';
+    let textColor = '#0369a1';
+    
+    switch (type) {
+        case 'success':
+            iconName = 'check_circle';
+            bgColor = '#d1fae5';
+            iconBgColor = '#065f46';
+            textColor = '#065f46';
+            break;
+        case 'error':
+            iconName = 'error';
+            bgColor = '#fee2e2';
+            iconBgColor = '#b91c1c';
+            textColor = '#b91c1c';
+            break;
+        case 'warning':
+            iconName = 'warning';
+            bgColor = '#fef3c7';
+            iconBgColor = '#92400e';
+            textColor = '#92400e';
+            break;
+    }
+    
+    // Scroll container into view to ensure visibility
+    setTimeout(() => {
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+    
+    const messageHTML = `
+        <div class="info-box" style="background-color: ${bgColor};">
+            <div class="info-icon" style="background-color: ${iconBgColor};">
+                <i class="material-icons">${iconName}</i>
+            </div>
+            <p style="color: ${textColor};">${message}</p>
+        </div>
+    `;
+    
+    container.innerHTML = messageHTML;
+}
+</script>
+{% endblock %}

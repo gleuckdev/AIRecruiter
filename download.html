@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Recruiter Pro - Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #2563eb;
+        }
+        .download-box {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .download-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .instructions {
+            background-color: #f5f5f5;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Recruiter Pro - Project Files Download</h1>
+    
+    <div class="download-box">
+        <h2>Download Project Files</h2>
+        <p>Click the button below to download the complete AI Recruiter Pro project as a compressed .tar.gz file.</p>
+        <a href="/download-project" class="download-button">Download Project (tar.gz)</a>
+    </div>
+    
+    <div class="instructions">
+        <h2>Installation Instructions</h2>
+        <ol>
+            <li>Download the .tar.gz file using the button above</li>
+            <li>Extract the file on your computer:
+                <br><code>tar -xzvf ai-recruiter-pro.tar.gz</code>
+            </li>
+            <li>Create a new GitHub repository</li>
+            <li>Push the files to your GitHub repository:
+                <br><code>cd ai-recruiter-pro</code>
+                <br><code>git init</code>
+                <br><code>git add .</code>
+                <br><code>git commit -m "Initial commit"</code>
+                <br><code>git remote add origin https://github.com/yourusername/ai-recruiter-pro.git</code>
+                <br><code>git push -u origin main</code>
+            </li>
+            <li>Follow the setup instructions in the README.md file to configure and run the application</li>
+        </ol>
+    </div>
+    
+    <div class="instructions">
+        <h2>Demo Account</h2>
+        <p>The application includes a built-in demo admin account:</p>
+        <ul>
+            <li><strong>Email:</strong> demo@example.com</li>
+            <li><strong>Password:</strong> Controlled by the <code>DEMO_PASSWORD</code> environment variable</li>
+        </ul>
+        <p>For security, the demo account password is automatically synchronized with the <code>DEMO_PASSWORD</code> environment variable at application startup. Be sure to set this to a secure value in your production environment.</p>
+    </div>
+    
+    <div class="instructions">
+        <h2>Alternative Download Methods</h2>
+        <p>If the download button doesn't work, you can try one of these alternatives:</p>
+        
+        <h3>Option 1: Use curl command</h3>
+        <code>curl -O https://[YOUR-REPLIT-URL]/download-project</code>
+        <p>Replace <code>[YOUR-REPLIT-URL]</code> with your actual Replit URL.</p>
+        
+        <h3>Option 2: Direct link</h3>
+        <p>Copy and paste this URL into your browser's address bar:</p>
+        <code>https://[YOUR-REPLIT-URL]/download-project</code>
+    </div>
+    
+    <p>For any issues or questions, please refer to the documentation or open an issue on the GitHub repository.</p>
+</body>
+</html>

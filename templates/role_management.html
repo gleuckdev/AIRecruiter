@@ -1,0 +1,349 @@
+<!-- templates/role_management.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Role Management{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">User Role Management</h1>
+    <p class="page-description">Manage user roles and permissions in your organization.</p>
+    
+    <div class="section-container">
+        <div class="section-header">
+            <h2 class="section-title">Users</h2>
+            <p class="section-description">Modify roles for your team members.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Current Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recruitersList">
+                            {% for r in recruiters %}
+                            <tr id="recruiter-{{ r.id }}" data-recruiter-id="{{ r.id }}">
+                                <td>{{ r.name }}</td>
+                                <td>{{ r.email }}</td>
+                                <td>
+                                    <span class="badge role-badge role-{{ r.role_id }}">
+                                        {{ r.role_id.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-primary change-role-btn" 
+                                                data-recruiter-id="{{ r.id }}"
+                                                data-name="{{ r.name }}"
+                                                data-current-role="{{ r.role_id }}">
+                                            <i class="material-icons">edit</i>
+                                            Change Role
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-container">
+        <div class="section-header">
+            <h2 class="section-title">Available Roles</h2>
+            <p class="section-description">System roles and their assigned permissions.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Permissions</th>
+                                <th>Inherits From</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for role in roles %}
+                            <tr>
+                                <td>
+                                    <span class="badge role-badge role-{{ role.role_id }}">
+                                        {{ role.name }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="permission-tags">
+                                        {% for permission in role.permissions %}
+                                        <span class="permission-tag">{{ permission }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if role.inherits %}
+                                        <span class="badge role-badge role-{{ role.inherits }}">
+                                            {{ role.inherits.replace('_', ' ').title() }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">None</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Role Modal -->
+<div id="changeRoleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Change User Role</h3>
+            <button type="button" class="modal-close" onclick="closeModal('changeRoleModal')">
+                <i class="material-icons">close</i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="message-container" id="roleChangeMessage"></div>
+            
+            <form id="changeRoleForm">
+                <input type="hidden" id="recruiterId" name="recruiterId">
+                
+                <div class="form-group">
+                    <label for="recruiterName">User Name</label>
+                    <div id="recruiterName" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="currentRole">Current Role</label>
+                    <div id="currentRole" class="static-field"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newRole">New Role</label>
+                    <select id="newRole" name="newRole" class="form-control" required>
+                        <option value="">Select a role</option>
+                        {% for role in roles %}
+                        <option value="{{ role.role_id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-default" onclick="closeModal('changeRoleModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.permission-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.permission-tag {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.role-admin {
+    background-color: #7c3aed;
+    color: white;
+}
+
+.role-senior_recruiter {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.role-recruiter {
+    background-color: #10b981;
+    color: white;
+}
+
+.static-field {
+    padding: 8px 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-size: 1rem;
+    color: #333;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up role change buttons
+    const changeRoleButtons = document.querySelectorAll('.change-role-btn');
+    changeRoleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const recruiterId = this.getAttribute('data-recruiter-id');
+            const recruiterName = this.getAttribute('data-name');
+            const currentRole = this.getAttribute('data-current-role');
+            
+            // Set form values
+            document.getElementById('recruiterId').value = recruiterId;
+            document.getElementById('recruiterName').textContent = recruiterName;
+            
+            // Set current role with proper formatting and badge
+            const currentRoleElement = document.getElementById('currentRole');
+            currentRoleElement.innerHTML = `<span class="badge role-badge role-${currentRole}">${currentRole.replace('_', ' ').title()}</span>`;
+            
+            // Set the new role select to the current value
+            const newRoleSelect = document.getElementById('newRole');
+            newRoleSelect.value = currentRole;
+            
+            // Show the modal
+            document.getElementById('changeRoleModal').style.display = 'flex';
+            
+            // Clear any previous messages
+            document.getElementById('roleChangeMessage').innerHTML = '';
+        });
+    });
+    
+    // Set up role change form
+    const changeRoleForm = document.getElementById('changeRoleForm');
+    changeRoleForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const recruiterId = document.getElementById('recruiterId').value;
+        const newRole = document.getElementById('newRole').value;
+        const messageContainer = document.getElementById('roleChangeMessage');
+        
+        // Don't submit if no change
+        const currentRoleDisplay = document.getElementById('currentRole').textContent.trim().toLowerCase();
+        const currentRole = currentRoleDisplay.replace(' ', '_');
+        
+        if (newRole === currentRole) {
+            showMessage(messageContainer, 'info', 'No change was made to the role.');
+            return;
+        }
+        
+        // Disable form during submission
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Updating...';
+        
+        try {
+            const response = await fetch(`/api/recruiters/${recruiterId}/role`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ role_id: newRole })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Show success message
+                showMessage(messageContainer, 'success', data.message || 'Role updated successfully!');
+                
+                // Update the table row
+                const row = document.getElementById(`recruiter-${recruiterId}`);
+                if (row) {
+                    const roleCell = row.querySelector('td:nth-child(3)');
+                    roleCell.innerHTML = `<span class="badge role-badge role-${newRole}">${newRole.replace('_', ' ').title()}</span>`;
+                    
+                    // Update the change button data attribute
+                    const button = row.querySelector('.change-role-btn');
+                    if (button) {
+                        button.setAttribute('data-current-role', newRole);
+                    }
+                }
+                
+                // Close modal after a delay
+                setTimeout(() => {
+                    closeModal('changeRoleModal');
+                }, 2000);
+            } else {
+                // Handle error based on the type
+                if (data.code === 'permission_denied') {
+                    showMessage(messageContainer, 'error', `Permission denied: ${data.details}`);
+                } else {
+                    showMessage(messageContainer, 'error', data.error || 'Failed to update role.');
+                }
+            }
+        } catch (error) {
+            showMessage(messageContainer, 'error', `Network error: ${error.message}`);
+        } finally {
+            // Re-enable the form
+            submitButton.disabled = false;
+            submitButton.textContent = 'Update Role';
+        }
+    });
+});
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'none';
+}
+
+function showMessage(container, type, message) {
+    if (!container) return;
+    
+    let iconName = 'info';
+    let bgColor = '#e0f2fe';
+    let iconBgColor = '#0284c7';
+    let textColor = '#0369a1';
+    
+    switch (type) {
+        case 'success':
+            iconName = 'check_circle';
+            bgColor = '#d1fae5';
+            iconBgColor = '#065f46';
+            textColor = '#065f46';
+            break;
+        case 'error':
+            iconName = 'error';
+            bgColor = '#fee2e2';
+            iconBgColor = '#b91c1c';
+            textColor = '#b91c1c';
+            break;
+        case 'warning':
+            iconName = 'warning';
+            bgColor = '#fef3c7';
+            iconBgColor = '#92400e';
+            textColor = '#92400e';
+            break;
+    }
+    
+    const messageHTML = `
+        <div class="info-box" style="background-color: ${bgColor};">
+            <div class="info-icon" style="background-color: ${iconBgColor};">
+                <i class="material-icons">${iconName}</i>
+            </div>
+            <p style="color: ${textColor};">${message}</p>
+        </div>
+    `;
+    
+    container.innerHTML = messageHTML;
+}
+</script>
+{% endblock %}
