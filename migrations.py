@@ -209,3 +209,13 @@ if __name__ == '__main__':
             
         # Run the job expiration migration
         run_migration(add_job_expiration_fields, "Added job expiration and renewal fields")
+def add_token_id_column_to_jobs(op, conn):
+    from sqlalchemy import inspect
+    inspector = inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns('jobs')]
+    
+    if 'token_id' not in columns:
+        op.add_column('jobs', Column('token_id', String, unique=True))
+    else:
+        print("ℹ️ 'token_id' column already exists in jobs table.")
+run_migration(add_token_id_column_to_jobs, "Added token_id column to jobs table")
