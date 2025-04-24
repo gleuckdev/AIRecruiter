@@ -153,14 +153,15 @@ if __name__ == '__main__':
             """))
 
         def add_job_expiration_fields(op, conn):
-            op.add_column('jobs', Column('expires_at', DateTime, server_default=func.now() + sql_text("INTERVAL '60 days'")))
-            op.add_column('jobs', Column('notification_sent', Boolean, server_default=false()))
-            op.add_column('jobs', Column('last_renewed_at', DateTime, nullable=True))
-            conn.execute(sql_text("""
-                UPDATE jobs 
-                SET expires_at = CURRENT_TIMESTAMP + INTERVAL '60 days' 
-                WHERE expires_at IS NULL
-            """))
+    op.add_column('jobs', Column('expires_at', DateTime, server_default=sql_text("(CURRENT_TIMESTAMP + INTERVAL '60 days')")))
+    op.add_column('jobs', Column('notification_sent', Boolean, server_default=false()))
+    op.add_column('jobs', Column('last_renewed_at', DateTime, nullable=True))
+    conn.execute(sql_text("""
+        UPDATE jobs 
+        SET expires_at = CURRENT_TIMESTAMP + INTERVAL '60 days' 
+        WHERE expires_at IS NULL
+    """))
+
 
         # === Run all migrations ===
         run_migration(add_persona_column, "Added persona column to candidates")
